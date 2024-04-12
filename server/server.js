@@ -1,62 +1,26 @@
 const express = require('express');
-const bcryptjs = require('bcryptjs');
 
 const connectDB = require('./dbs');
-const User = require('./models/User');
+const authenticate = require('./middleware/authenticate');
+const routes = require('./routes/index');
 
 const app = express();
 
 app.use(express.json());
 
+app.use(routes);
 
-app.post('/register', async (req, res, next) => {
-    const {name, email, password} = req.body;
+app.get('/private', authenticate, (req, res) => {
+    console.log('I am user', req.user);
 
-    if(!name || !email || !password) {
-        return res.status(400).json({message: "Invalid Data"});
-    }
+    return res.status(200).json({message: 'This is a private route'});
+})
 
-    try {
-        let user = await User.findOne({email});
-        if (user) {
-            return res.status(400).json({message: 'User already exists'});
-        }
+app.get('/public', (req, res) => {
+    return res.status(200).json({message: 'This is a public route'});
+})
 
-        user = new User({name, email, password});
-
-        const salt = await bcryptjs.genSalt(10);
-        user.password = await bcryptjs.hash(password, salt);
-
-        await user.save();
-
-        return res.status(201).json({message:'User creates successfully', user});
-    } catch (e) {
-        next(e);
-    }
-});
-
-app.post('/login', async (req, res, next) => {
-    const { email, password } = req.body;
-    try {
-        const user = await User.findOne({ email });
-        if(!user) {
-            return res.status(400).json({message: 'Invalid Credential'});
-        }
-
-        const isValidPassword = await bcryptjs.compare(password, user.password);
-        if(!isValidPassword) {
-            return res.status(400).json({message: 'Invalid Credential'});
-        }
-
-        delete user.password;
-
-        return res.status(200).json({message: 'Login Successfull', user});
-    } catch (e) {
-        next(e);
-    }
-}) 
-
-app.get('/', (_, res) => {
+app.get('/', (_req, res) => {
     const obj = {
         name: 'Ayaman',
         email: 'aymna@gmail.com',
@@ -64,9 +28,12 @@ app.get('/', (_, res) => {
     res.json(obj);
 });
 
-app.use((err, req, res, next) => {
-    console.log(err);
-    res.status(500).json({message: 'Internal Server Error'});
+
+
+app.use((err, _req, res, _next) => {
+    const message = err.message ? err.message : 'Internal Server Error';
+    const status = err.status ? err.status: 500;
+    res.status(status).json({message});
 })
 
 connectDB('mongodb://localhost:27017/attendance-db').then(() => {

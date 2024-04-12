@@ -19,8 +19,7 @@ const userSchema = new Schema({
     },
     password: {
         type: String,
-        minlength: [4, 'password must be between 4-16 characters.'],
-        maxlength: [16,  'password must be between 4-16 characters.'],
+        minlength: [4, 'password must be minimum 4 characters.'],
         required: true
     },
     roles: {
