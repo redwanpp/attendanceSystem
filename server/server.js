@@ -34,6 +34,7 @@ app.use((err, _req, res, _next) => {
     const message = err.message ? err.message : 'Internal Server Error';
     const status = err.status ? err.status: 500;
     res.status(status).json({message});
+    console.log(err);
 })
 
 connectDB('mongodb://localhost:27017/attendance-db').then(() => {
