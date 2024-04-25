@@ -1,8 +1,8 @@
 const User = require('../models/User');
+
 const userService = require('../service/user')
 const authService = require('../service/auth');
 const error = require('../util/error');
-const { trace, use } = require('../routes/users');
 
 const getUsers = async (_req, res, next) => {
     try {
